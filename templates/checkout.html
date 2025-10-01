@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout</title>
+</head>
+<body>
+    <h1>Checkout</h1>
+    <h2>Your Order</h2>
+    <ul>
+        {% for item_id, item in cart.items() %}
+            <li>{{ item.name }} (x{{ item.quantity }}) - ${{ "%.2f"|format(item.price * item.quantity) }}</li>
+        {% endfor %}
+    </ul>
+    <p><strong>Total: ${{ "%.2f"|format(cart_total) }}</strong></p>
+
+    <form method="POST">
+        <label for="customer_name">Your Name:</label><br>
+        <input type="text" id="customer_name" name="customer_name" required><br><br>
+        <button type="submit">Confirm Order</button>
+    </form>
+
+    <a href="{{ url_for('menu') }}">Back to Menu</a>
+</body>
+</html>

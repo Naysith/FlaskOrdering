@@ -25,6 +25,8 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_name TEXT NOT NULL,
         total REAL NOT NULL,
+        order_number TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -43,7 +45,7 @@ def init_db():
 
     conn.commit()
     conn.close()
-    print("✅ Database initialized!")
+    print("✅ Database initialized with products, orders (with status), and order_items!")
 
 # ==========================
 # Product Functions
@@ -129,6 +131,40 @@ def get_order_details(order_id):
     details = c.fetchall()
     conn.close()
     return details
+
+def create_order(cart, customer_name, order_number):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    # --- calculate total ---
+    total = 0.0
+    for item in cart.values():
+        total += item["price"] * item["quantity"]
+
+    # --- insert into orders table ---
+    cursor.execute(
+        """
+        INSERT INTO orders (customer_name, total, order_number, status)
+        VALUES (?, ?, ?, ?)
+        """,
+        (customer_name, total, order_number, "pending"),
+    )
+
+    order_id = cursor.lastrowid
+
+    # --- insert order items ---
+    for product_id, item in cart.items():
+        cursor.execute(
+            """
+            INSERT INTO order_items (order_id, product_id, quantity)
+            VALUES (?, ?, ?)
+            """,
+            (order_id, int(product_id), item["quantity"]),
+        )
+
+    conn.commit()
+    conn.close()
+    return order_id
 
 # ==========================
 # Sample Data Seeder
